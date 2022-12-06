@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   get_next_line.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sabdelra <sabdelra@student.42abudhabi.a    +#+  +:+       +#+        */
+/*   By: sabdelra <sabdelra@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/04 01:33:11 by sabdelra          #+#    #+#             */
-/*   Updated: 2022/12/04 01:33:11 by sabdelra         ###   ########.fr       */
+/*   Updated: 2022/12/07 02:36:13 by sabdelra         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,39 +14,39 @@
 
 char	*get_next_line(int fd)
 {
-	static char		*stash; //should be able to just add buffers to it [stash <-- buffer <-- buffer ...]
+	static char		*stash;
 	size_t			buffer_size = BUFFER_SIZE;
 	int				read_return;
+	char			buffer[BUFFER_SIZE + 1];
 
-	char *buffer, *return_string;
-
-	buffer = (char *)malloc(buffer_size + 1);
-	buffer[buffer_size] = '\0';
-	if(!buffer)
+	if(fd < 0 || buffer_size <= 0)
 		return (0);
-	while (new_line(stash) == 0 || read_return < buffer_size) // return < size means either -1,0, close to end
+	if (!stash)
+		stash = "";
+	read_return = 1;
+	while (new_line(stash) == 0 && read_return > 0)
 	{
-		read_return = read(fd, buffer, buffer_size); // [to-do] test if read clears the buffer
-		stash = join(stash, buffer, read_return); // optimize this by starting stash after the previous loop run
-
+		read_return = read(fd, buffer, buffer_size);
+		if (read_return < 0)
+			return(NULL);
+		buffer[read_return] = '\0';
+		join(&stash, buffer, read_return); // optimize this by starting stash after the previous loop run
+		if (read_return == 0)
+			break;
 	}
+	if (stash[0] == '\0')
+		return(NULL);
 	return(shift_left(&stash));
 }
 
-
-
-/*
-test whether read clears the buffer or no
 int main(void)
 {
-	char *buff;
-	buff = malloc(4);
-	buff[3] = '\0';
 	int fd = open("file1.txt", O_RDONLY);
-	for(int i = 0; i < 5; i++)
+	for(int i = 0; i < 13; i++)
 	{
-		_read(fd, buff, 3);
-		printf("%s\n", buff);
+
+		printf("%s\n", get_next_line(fd));
+		printf("*******************************************\n");
 	}
+	//free(s);
 }
- */

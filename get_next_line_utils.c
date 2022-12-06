@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   get_next_line_utils.c                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sabdelra <sabdelra@student.42abudhabi.a    +#+  +:+       +#+        */
+/*   By: sabdelra <sabdelra@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/05 02:53:41 by sabdelra          #+#    #+#             */
-/*   Updated: 2022/12/05 02:53:41 by sabdelra         ###   ########.fr       */
+/*   Updated: 2022/12/07 02:31:04 by sabdelra         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,16 +15,6 @@
 #include <string.h>
 //#include <unistd.h>
 
-/*
-Parse the stash, should be the last function to call before output
-Returns a string ending at the first \n it encounters (only call this function when stash has \n)
-shifts everything after \n into a new location (frees old pointer) and returns a new pointer
-[to-do] need to maintain index
-[to-do] include ft_memmove
-[to-do] check if **stash works as static, might not work as its setting a new location
-[to-do] function to join buffers to stash
-[to-do] function to check stash for \n
-*/
 char	*shift_left(char **stash)
 {
 	char	*return_string;
@@ -35,45 +25,71 @@ char	*shift_left(char **stash)
 	i = 0;
 	j = 0;
 	// care precedence || *stash[i] = *(stash[i])     [] higher than *
-	while((*stash)[i] != '\n')
+	while((*stash)[i] != '\n' && (*stash)[i])
 		i++;
-	return_string = (char *)malloc(i + 2); // + 2 to include the \n and \0
+	if ((*stash)[i] == '\0')
+	{
+		return_string = (char *)malloc(i + 1);
+		if (!return_string)
+			return (NULL);
+		ft_memmove(return_string, *stash, i + 1);
+		if(**stash)
+			free(*stash);
+		(*stash) = NULL;
+		return(return_string);
+	}
+	return_string = (char *)malloc(i + 2);
 	if (!return_string)
 		return (0);
-	memmove(return_string, *stash, i + 1);
+	ft_memmove(return_string, *stash,i + 1);
 	return_string[i + 1] = '\0';
-	while((*stash)[i + j]) // j reach the null
-		j++; //assume j=2
-	temp = (char *)malloc(sizeof(char) * (j)); //malloc 3
-	if (!return_string)
+	while((*stash)[i + j])
+		j++;
+	temp = (char *)malloc(sizeof(char) * (j));
+	if (!temp)
+	{
+		free(return_string);
 		return (0);
-	temp[j - 1] = '\0'; // temp [2]
-	memmove(temp, *stash+i+1, j); // copy 2 characters the 3rd is null ^^
-	free(*stash);
+	}
+	temp[j - 1] = '\0';
+	ft_memmove(temp, *stash+i+1, j);
+	if(**stash)
+		free(*stash);
 	*stash = temp;
 	return(return_string);
 }
 
 size_t ft_strlen(char *str)
 {
-	if(!*str)
-		return (0);
-	return (1 + ft_strlen(str + 1));
+	size_t i;
+
+	i = 0;
+	if(str[0] == '\0')
+		return(0);
+	while(str[i])
+		i++;
+	return (i);
 }
 
-char	*join(char *stash, char *buffer)
+void	join(char **stash, char *buffer, int buffer_length)
 {
 	char *new_stash;
 	size_t stash_length;
-	size_t buffer_length;
 
-	stash_length = ft_strlen(stash);
-	buffer_length = ft_strlen(buffer);
-	new_stash = (char *)malloc(stash_length + buffer_length + 1);
-	memmove(new_stash, stash, stash_length);
+	if (!*stash || !buffer)
+		return ;
+	stash_length = ft_strlen(*stash);
+	new_stash = (char *)malloc(stash_length + buffer_length);
+	if(!new_stash)
+		return ;
+	ft_memmove(new_stash, *stash, stash_length + 1);
 	strncat(new_stash, buffer, buffer_length);
 	new_stash[stash_length + buffer_length] = '\0';
-	return(new_stash);
+	if (**stash)
+		free(*stash);
+	*stash = new_stash;
+	if(new_stash[0] == '\0')
+		free(new_stash);
 }
 
 int	new_line(char *stash)
@@ -83,40 +99,59 @@ int	new_line(char *stash)
 	i = 0;
 	while(stash[i])
 	{
-		if(stash[i] != '\n')
+		if(stash[i] == '\n')
 			return (1);
+		i++;
 	}
 	return (0);
 }
 
-/* // testing join
-int main(void)
+void	*ft_memmove(void *dest, const void *src, size_t size)
 {
-	char *buffer = "Hello!";
-	char *stash = malloc(5);
-	static char *statiko;
-	stash = "new1";
-	stash = join(stash, buffer);
-	stash = join(stash, "welcome");
-	statiko = stash;
-	printf("%s\n", statiko);
-}
- */
+	int	i;
 
-// testing shift_left
-int main(void)
-{
-	size_t stash_size = 1024;
-	char *stash = (char *)malloc(100);
-	if(!stash)
-		return (0);
-	memmove(stash, "Hello\nKeep this", stash_size);
-	printf("Return string = %s", shift_left(&stash));
-	printf(">>>\n\n--------------------------\n\n");
-	for(int i = 0; i < 8; i++)
+	if (!dest && !src)
+		return (NULL);
+	if (dest < src)
 	{
-		printf("%c", (char)stash[i]);
+		i = 0;
+		while (i < (int)size)
+		{
+			((char *)dest)[i] = ((char *)src)[i];
+			i++;
+		}
 	}
-	printf("\n\n--------------------------\n\n");
+	else
+	{
+		i = (int)size - 1;
+		while (i >= 0)
+		{
+			((char *)dest)[i] = ((char *)src)[i];
+			i--;
+		}
+	}
+	return (dest);
 }
 
+size_t	ft_strlcat(char *dst,char *src, size_t size)
+{
+	size_t	i;
+	int		j;
+	int		length;
+
+	if (!dst && !size)
+		return (0);
+	length = ft_strlen(dst);
+	if (size <= ft_strlen(dst))
+		return (size + ft_strlen(src));
+	i = ft_strlen((char *)dst);
+	j = 0;
+	while (src[j] != '\0' && i < size)
+	{
+		dst[i] = src[j];
+		i++;
+		j++;
+	}
+	//dst[i] = '\0';
+	return (length + ft_strlen(src));
+}
