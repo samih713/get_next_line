@@ -27,7 +27,8 @@ char	*get_next_line(int fd)
 	while (new_line(stash) == 0 || read_return < buffer_size) // return < size means either -1,0, close to end
 	{
 		read_return = read(fd, buffer, buffer_size); // [to-do] test if read clears the buffer
-		stash = join(stash, buffer, read_return);
+		stash = join(stash, buffer, read_return); // optimize this by starting stash after the previous loop run
+
 	}
 	return(shift_left(&stash));
 }
