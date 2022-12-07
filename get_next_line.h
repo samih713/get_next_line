@@ -6,7 +6,7 @@
 /*   By: sabdelra <sabdelra@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/04 01:32:03 by sabdelra          #+#    #+#             */
-/*   Updated: 2022/12/07 01:57:32 by sabdelra         ###   ########.fr       */
+/*   Updated: 2022/12/07 21:21:28 by sabdelra         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@
 #include <fcntl.h>
 
 #ifndef BUFFER_SIZE
-# define BUFFER_SIZE 5000
+# define BUFFER_SIZE 5
 #endif
 
 char	*get_next_line(int fd);
@@ -30,5 +30,6 @@ size_t ft_strlen(char *str);
 char	*shift_left(char **stash);
 void	*ft_memmove(void *dest, const void *src, size_t size);
 size_t	ft_strlcat(char *dst,char *src, size_t size);
+void	ft_bzero(void *s, size_t n);
 
 #endif

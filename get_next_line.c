@@ -6,7 +6,7 @@
 /*   By: sabdelra <sabdelra@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/04 01:33:11 by sabdelra          #+#    #+#             */
-/*   Updated: 2022/12/07 02:36:13 by sabdelra         ###   ########.fr       */
+/*   Updated: 2022/12/07 23:58:00 by sabdelra         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,10 +14,10 @@
 
 char	*get_next_line(int fd)
 {
-	static char		*stash;
+	static char		*stash; // always initialized to null
 	size_t			buffer_size = BUFFER_SIZE;
 	int				read_return;
-	char			buffer[BUFFER_SIZE + 1];
+	char			buffer[BUFFER_SIZE + 1]; // not good practie moulinette might fail
 
 	if(fd < 0 || buffer_size <= 0)
 		return (0);
@@ -30,23 +30,38 @@ char	*get_next_line(int fd)
 		if (read_return < 0)
 			return(NULL);
 		buffer[read_return] = '\0';
-		join(&stash, buffer, read_return); // optimize this by starting stash after the previous loop run
-		if (read_return == 0)
-			break;
+		join(&stash, buffer, read_return + 1); // optimize this by starting stash after the previous loop run
 	}
-	if (stash[0] == '\0')
+	if (!stash)
 		return(NULL);
+	// char *return_string = shift_left(&stash);
 	return(shift_left(&stash));
 }
 
 int main(void)
 {
-	int fd = open("file1.txt", O_RDONLY);
-	for(int i = 0; i < 13; i++)
+	int fd = open("43_with_nl", O_RDONLY);
+	char *s = get_next_line(fd);
+	// for(int i = 0; i < 3; i++)
+	// {
+	// 	printf("%s\n", s);
+	// 	printf("*******************************************\n");
+	// }
+	while (s)
 	{
-
-		printf("%s\n", get_next_line(fd));
-		printf("*******************************************\n");
+		printf("%s\n", s);
+		free(s);
+		s = get_next_line(fd);
 	}
-	//free(s);
+	close(fd);
+	free(s);
 }
+
+// int main(void)
+// {
+// 	static char s[] = "5585184158";
+// 	//printf("%s", s);
+// 	// s = "5585184158";
+// 	s[0] = '1';
+// 	printf("%s", s);
+// }
