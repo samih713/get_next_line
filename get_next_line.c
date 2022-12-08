@@ -6,20 +6,31 @@
 /*   By: sabdelra <sabdelra@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/04 01:33:11 by sabdelra          #+#    #+#             */
-/*   Updated: 2022/12/07 23:58:00 by sabdelra         ###   ########.fr       */
+/*   Updated: 2022/12/08 19:15:44 by sabdelra         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+/*
+[to-do] Make file
+[to-do] initializing on the stack
+[to-do] split helper(static) and utilities
+[to-do] debug and optimzie
+[to-do] destroy and re-create
+ */
 #include "get_next_line.h"
+
+static char	*shift_left(char **stash);
+static void	join(char **stash, char *buffer, int buffer_length);
 
 char	*get_next_line(int fd)
 {
-	static char		*stash; // always initialized to null
-	size_t			buffer_size = BUFFER_SIZE;
+	static char		*stash;
+	size_t			buffer_size;
 	int				read_return;
-	char			buffer[BUFFER_SIZE + 1]; // not good practie moulinette might fail
+	char			buffer[BUFFER_SIZE + 1];
 
-	if(fd < 0 || buffer_size <= 0)
+	buffer_size = BUFFER_SIZE;
+	if (fd < 0 || buffer_size <= 0)
 		return (0);
 	if (!stash)
 		stash = "";
@@ -28,40 +39,62 @@ char	*get_next_line(int fd)
 	{
 		read_return = read(fd, buffer, buffer_size);
 		if (read_return < 0)
-			return(NULL);
+			return (NULL);
 		buffer[read_return] = '\0';
-		join(&stash, buffer, read_return + 1); // optimize this by starting stash after the previous loop run
+		join(&stash, buffer, read_return + 1);
 	}
 	if (!stash)
-		return(NULL);
-	// char *return_string = shift_left(&stash);
-	return(shift_left(&stash));
+		return (NULL);
+	return (shift_left(&stash));
 }
 
-int main(void)
+static char	*shift_left(char **stash)
 {
-	int fd = open("43_with_nl", O_RDONLY);
-	char *s = get_next_line(fd);
-	// for(int i = 0; i < 3; i++)
-	// {
-	// 	printf("%s\n", s);
-	// 	printf("*******************************************\n");
-	// }
-	while (s)
+	char	*return_string;
+	size_t	i;
+	size_t	j;
+
+	i = 0;
+	j = 0;
+	while ((*stash)[i] != '\n' && (*stash)[i])
+		i++;
+	return_string = (char *)malloc(i + 2);
+	if (!return_string)
+		return (0);
+	ft_memmove(return_string, *stash, i + 1);
+	return_string[i + 1] = '\0';
+	while ((*stash)[i + j++])
+		;
+	ft_memmove(*stash, *stash + i + 1, j);
+	if (*stash && !**stash)
 	{
-		printf("%s\n", s);
-		free(s);
-		s = get_next_line(fd);
+		free(*stash);
+		*stash = NULL;
 	}
-	close(fd);
-	free(s);
+	return (return_string);
 }
 
-// int main(void)
-// {
-// 	static char s[] = "5585184158";
-// 	//printf("%s", s);
-// 	// s = "5585184158";
-// 	s[0] = '1';
-// 	printf("%s", s);
-// }
+static void	join(char **stash, char *buffer, int buffer_length)
+{
+	char	*new_stash;
+	size_t	stash_length;
+
+	if (*stash)
+		stash_length = ft_strlen(*stash);
+	else
+		stash_length = 0;
+	new_stash = (char *)malloc(stash_length + buffer_length + 1);
+	if (!new_stash)
+		return ;
+	ft_memmove(new_stash, *stash, stash_length + 1);
+	ft_strncat(new_stash, buffer, buffer_length);
+	new_stash[stash_length + buffer_length] = '\0';
+	if (**stash)
+		free(*stash);
+	*stash = new_stash;
+	if (new_stash[0] == '\0')
+	{
+		free(new_stash);
+		*stash = NULL;
+	}
+}
