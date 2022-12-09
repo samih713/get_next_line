@@ -1,47 +1,42 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   get_next_line.c                                    :+:      :+:    :+:   */
+/*   get_next_line_bonus.c                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: sabdelra <sabdelra@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2022/12/04 01:33:11 by sabdelra          #+#    #+#             */
-/*   Updated: 2022/12/09 18:08:03 by sabdelra         ###   ########.fr       */
+/*   Created: 2022/12/09 18:11:19 by sabdelra          #+#    #+#             */
+/*   Updated: 2022/12/09 18:15:16 by sabdelra         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-/*
-[to-do] initializing on the stack
-[to-do] debug and optimzie
-[to-do] destroy and re-create
- */
-#include "get_next_line.h"
+#include "get_next_line_bonus.h"
 
 static char	*shift_left(char **stash);
 static void	join(char **stash, char *buffer, int buffer_length);
 
 char	*get_next_line(int fd)
 {
-	static char		*stash;
+	static char		*stash[256];
 	int				read_return;
 	char			buffer[BUFFER_SIZE + 1];
 
 	if (fd < 0 || BUFFER_SIZE <= 0 || BUFFER_SIZE > 2147483647)
 		return (0);
-	if (!stash)
-		stash = "";
+	if (!stash[fd])
+		stash[fd] = "";
 	read_return = 1;
-	while (new_line(stash) == 0 && read_return > 0)
+	while (new_line(stash[fd]) == 0 && read_return > 0)
 	{
 		read_return = read(fd, buffer, BUFFER_SIZE);
 		if (read_return < 0)
 			return (NULL);
 		buffer[read_return] = '\0';
-		join(&stash, buffer, read_return + 1);
+		join(&stash[fd], buffer, read_return + 1);
 	}
-	if (!stash)
+	if (!stash[fd])
 		return (NULL);
-	return (shift_left(&stash));
+	return (shift_left(&stash[fd]));
 }
 
 static char	*shift_left(char **stash)
